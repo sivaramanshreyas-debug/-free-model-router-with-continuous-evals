@@ -18,8 +18,11 @@ cp .env.example .env
 # edit .env and add your Gemini and Groq API keys
 python day1.py list
 python day1.py ask gemini:<model-id> groq:<model-id>
+python -m pytest   # runs offline: no keys or network needed
 ```
+
+Each `ask` appends results to `results/runs.jsonl` (kept out of git).
 
 ## Status
 
-- [ ] Day 1: provider registry, adapter, model listing
+- [x] Day 1: provider registry, adapter (timeout + classified errors), offline tests, results log, first real Gemini vs Groq comparison

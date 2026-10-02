@@ -96,14 +96,14 @@ Evals, routing logic, a web UI, a third provider, images or audio. Add ideas to 
 ---
 
 ## Definition of done for Day 1
-- [ ] `.env` proven ignored; no keys anywhere in git history
-- [ ] Registry validates
-- [ ] Adapter has a timeout and classified errors; never crashes
-- [ ] `pytest` passes without network
-- [ ] `results/runs.jsonl` logs every comparison
-- [ ] Real comparison run between Gemini and Groq
-- [ ] `docs/day-01-notes.md` written by Shreyas
-- [ ] README updated, committed, pushed
+- [x] `.env` proven ignored; no keys anywhere in git history
+- [x] Registry validates
+- [x] Adapter has a timeout and classified errors; never crashes
+- [x] `pytest` passes without network
+- [x] `results/runs.jsonl` logs every comparison
+- [x] Real comparison run between Gemini and Groq
+- [x] `docs/day-01-notes.md` written by Shreyas
+- [x] README updated, committed, pushed
 
 ## End-of-day quiz (Claude asks, Shreyas answers)
 1. What is the difference between the registry and the adapter?
@@ -112,4 +112,7 @@ Evals, routing logic, a web UI, a third provider, images or audio. Add ideas to 
 4. Why must tests run without the internet?
 
 ## Later (parking lot)
-- 
+- Add an error type for 5xx overload (e.g. `unavailable`). A 503 "high demand, try later" currently lands in `other`, but the router should treat it like `rate_limit`.
+- `list_models()` returns non-chat models (image, TTS, video, embeddings, safety classifiers). The router needs a way to know which models can chat.
+- "Listed" ≠ usable: `gemini-2.5-flash` is listed but returns 404 for new accounts. The router must try models and remember which ones work for this account.
+- Token counts aren't comparable across models (`gpt-oss` adds hidden setup and reasoning tokens). Matters once we track free-tier usage.
