@@ -15,3 +15,16 @@ PROVIDERS = {
         "api_key_env": "GROQ_API_KEY",
     },
 }
+
+REQUIRED_FIELDS = ("base_url", "api_key_env")
+
+
+def validate_registry(providers: dict = PROVIDERS) -> None:
+    """Raise ValueError if any provider entry is missing a required field."""
+    problems = []
+    for name, cfg in providers.items():
+        for field in REQUIRED_FIELDS:
+            if not cfg.get(field):
+                problems.append(f"{name}: missing '{field}'")
+    if problems:
+        raise ValueError("Invalid provider registry:\n  " + "\n  ".join(problems))
