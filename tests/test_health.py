@@ -1,3 +1,5 @@
+import health
+from adapter import Result
 from health import is_chat_candidate
 
 # Real names from the Day 1 `list` output.
@@ -40,3 +42,34 @@ def test_bouncer_lets_chat_models_in():
 def test_bouncer_keeps_other_models_out():
     for name in NOT_CHAT_MODELS:
         assert not is_chat_candidate(name), name
+
+
+def use_fakes(monkeypatch, listed):
+    """Fake list_models() and ask(); return the list of models that got a probe."""
+    probed = []
+
+    def fake_ask(provider, model, prompt):
+        probed.append(model)
+        return Result(provider, model, "OK", 0.1, 5, 1)
+
+    monkeypatch.setattr(health, "list_models", lambda provider: listed)
+    monkeypatch.setattr(health, "ask", fake_ask)
+    return probed
+
+
+def test_check_provider_only_probes_chat_models(monkeypatch):
+    probed = use_fakes(monkeypatch, ["gemini-3.5-flash", "veo-3.1-generate-preview", "gemma-4-31b-it"])
+
+    results = health.check_provider("gemini", pause_s=0)
+
+    assert probed == ["gemini-3.5-flash", "gemma-4-31b-it"]
+    assert [r.model for r in results] == probed
+
+
+def test_check_provider_respects_limit(monkeypatch):
+    probed = use_fakes(monkeypatch, ["a-chat", "b-chat", "c-chat", "d-chat"])
+
+    results = health.check_provider("groq", limit=2, pause_s=0)
+
+    assert probed == ["a-chat", "b-chat"]
+    assert len(results) == 2
