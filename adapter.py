@@ -32,7 +32,7 @@ class Result:
     input_tokens: int | None       # size of what we sent
     output_tokens: int | None      # size of what came back
     error: str | None = None       # filled in if the call failed (e.g. rate limit)
-    error_type: str | None = None  # rate_limit | auth | not_found | timeout | connection | other
+    error_type: str | None = None  # rate_limit | auth | not_found | unavailable | timeout | connection | other
 
 
 def client_for(provider: str) -> OpenAI:
@@ -56,6 +56,8 @@ def classify_error(e: Exception) -> str:
         return "auth"
     if isinstance(e, openai.NotFoundError):
         return "not_found"
+    if isinstance(e, openai.InternalServerError):  # any 5xx, e.g. 503 "high demand"
+        return "unavailable"
     return "other"
 
 

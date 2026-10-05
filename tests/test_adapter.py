@@ -63,6 +63,16 @@ def test_ask_rate_limit_is_classified(monkeypatch):
     assert r.error_type == "rate_limit"
 
 
+def test_ask_server_overload_is_unavailable(monkeypatch):
+    err = openai.InternalServerError("high demand", response=httpx2.Response(503, request=REQ), body=None)
+    use_fake(monkeypatch, FakeClient(error=err))
+
+    r = adapter.ask("gemini", "some-model", "hi")
+
+    assert r.text is None
+    assert r.error_type == "unavailable"
+
+
 def test_ask_timeout_is_classified(monkeypatch):
     use_fake(monkeypatch, FakeClient(error=openai.APITimeoutError(request=REQ)))
 
