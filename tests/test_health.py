@@ -1,3 +1,5 @@
+import json
+
 import health
 from adapter import Result
 from health import is_chat_candidate
@@ -73,3 +75,21 @@ def test_check_provider_respects_limit(monkeypatch):
 
     assert probed == ["a-chat", "b-chat"]
     assert len(results) == 2
+
+
+def test_save_health_keeps_one_section_per_provider(tmp_path):
+    snapshot = tmp_path / "health.json"
+    ok = Result("groq", "model-a", "OK", 0.4, 5, 1)
+    busy = Result("groq", "model-b", None, 1.2, None, None, error="503", error_type="unavailable")
+
+    health.save_health("groq", [ok], snapshot)
+    health.save_health("groq", [ok, busy], snapshot)
+    health.save_health("gemini", [ok], snapshot)
+
+    data = json.loads(snapshot.read_text(encoding="utf-8"))
+    assert list(data) == ["groq", "gemini"]
+    assert data["groq"]["models"] == [
+        {"model": "model-a", "status": "ok", "latency_s": 0.4},
+        {"model": "model-b", "status": "unavailable", "latency_s": 1.2},
+    ]
+    assert "checked_at" in data["groq"]
