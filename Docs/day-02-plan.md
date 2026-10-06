@@ -59,7 +59,7 @@ Choosing between models (routing), judging answer quality (evals), running check
 ## Task 5: Save the health snapshot
 **Do:**
 - Add `day2.py check [provider] [--limit N]`: runs the check, prints a table (provider, model, status, latency), appends every probe to `results/runs.jsonl`, and writes `results/health.json` with each model's status, latency and `checked_at` time.
-- `health.json` is replaced on every run; `runs.jsonl` keeps growing.
+- Each run replaces its own provider's section of `health.json` (so checking Gemini doesn't erase Groq); `runs.jsonl` keeps growing.
 
 **Done when:** running `check` twice leaves one up-to-date `health.json` and twice as many probe lines in `runs.jsonl`.
 
@@ -93,15 +93,15 @@ Choosing between models (routing), judging answer quality (evals), running check
 ---
 
 ## Definition of done for Day 2
-- [ ] Keys rotated; `.env` still ignored; no keys in git history
-- [ ] 5xx errors labelled `unavailable`
-- [ ] `is_chat_candidate()` filters out non-chat models
-- [ ] `check_provider()` probes chat models politely (pause + limit)
-- [ ] `results/health.json` holds the latest status of every probed model
-- [ ] `pytest` passes without network
-- [ ] Real health check run on both providers
-- [ ] `Docs/day-02-notes.md` written by Shreyas
-- [ ] README updated, committed, pushed
+- [x] Keys rotated; `.env` still ignored; no keys in git history
+- [x] 5xx errors labelled `unavailable`
+- [x] `is_chat_candidate()` filters out non-chat models
+- [x] `check_provider()` probes chat models politely (pause + limit)
+- [x] `results/health.json` holds the latest status of every probed model
+- [x] `pytest` passes without network
+- [x] Real health check run on both providers
+- [x] `Docs/day-02-notes.md` written by Shreyas
+- [x] README updated, committed, pushed
 
 ## End-of-day quiz (Claude asks, Shreyas answers)
 1. Why can't the router trust `list_models()` on its own?
@@ -111,4 +111,5 @@ Choosing between models (routing), judging answer quality (evals), running check
 
 ## Later (parking lot)
 - Token counts aren't comparable across models (`gpt-oss` adds hidden setup and reasoning tokens). Matters once we track free-tier usage. *(carried over from Day 1)*
-- 
+- Split `rate_limit` in two: "busy, try later" vs "not on your plan". Gemini's `pro` models return 429 with `limit: 0` on the free tier, which will never work; the router should stop trying them instead of retrying later.
+- `list_models()` failing (e.g. a bad key) still raises; `day2.py` catches it. If the router needs it, return it as a labelled failure like `ask()` does.
